@@ -1,0 +1,39 @@
+# environment
+.env
+.env.local
+.env.*.local
+
+# node
+node_modules/
+npm-debug.log*
+backend/node_modules/
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+python-service/__pycache__/
+
+# docker
+.dockerignore
+
+# os
+.DS_Store
+Thumb.db
+
+# Logs
+logs/
+*.log
+
+# build
+frontend/build/
+frontend/dist/
+
+# database
+*.sql.bak
+
+# ide
+.vscode/settings.json
+.idea/
