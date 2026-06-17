@@ -19,6 +19,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+app.use('/api/statements', require('./routes/statements'));
 
 // Request logger
 app.use((req, res, next)=>{
