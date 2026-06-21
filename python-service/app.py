@@ -1,6 +1,7 @@
 import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import pikepdf
 
 app = Flask(__name__)
 CORS(app)
@@ -77,6 +78,76 @@ def parse_statement():
 def parse_policy():
     # week 5
     return jsonify({'status': 'insights not yet implemented'})
+
+
+@app.route('/gmail/sync', methods=['POST'])
+def gmail_sync():
+    from utils.gmail_search import search_statement_emails, download_pdf_attachment
+    from utils.pdf_unlock import unlock_pdf
+    from utils.statement_extractor import extract_transactions
+    import pikepdf
+
+    data = request.get_json()
+    access_token = data.get('access_token')
+    bank         = data.get('bank')
+    password     = data.get('password')
+    after_date   = data.get('after_date')   # optional, defaults to Jan 1 this year
+    before_date  = data.get('before_date')  # optional, defaults to today
+    already_synced_ids = set(data.get('already_synced_ids', []))  # from gmail_sync_log
+
+    if not access_token or not bank or not password:
+        return jsonify({'error': 'access_token, bank, and password are required'}), 400
+
+    # Step 1: find candidate statement emails (bounded by date window)
+    try:
+        emails = search_statement_emails(access_token, bank, after_date, before_date)
+    except Exception as e:
+        return jsonify({'error': f'Gmail search failed: {str(e)}'}), 500
+
+    # Step 2: skip anything already processed in a previous sync
+    new_emails = [e for e in emails if e['id'] not in already_synced_ids]
+
+    results = []
+    for email in new_emails:
+        entry = {
+            'gmail_message_id': email['id'],
+            'subject': email['subject'],
+            'date': email['date'],
+            'status': 'failed',
+            'transactions': [],
+            'error': None,
+        }
+
+        try:
+            pdf_bytes = download_pdf_attachment(access_token, email['id'])
+            if not pdf_bytes:
+                entry['error'] = 'No PDF attachment found in this email'
+                results.append(entry)
+                continue
+
+            unlocked_bytes = unlock_pdf(pdf_bytes, password)
+            transactions = extract_transactions(unlocked_bytes, bank)
+
+            entry['status'] = 'success'
+            entry['transactions'] = transactions
+            # pdf_bytes and unlocked_bytes go out of scope here -- never written to disk,
+            # garbage collected once this loop iteration ends
+
+        except pikepdf.PasswordError:
+            entry['error'] = 'Incorrect password for this statement'
+        except Exception as e:
+            entry['error'] = f'Processing failed: {str(e)}'
+
+        results.append(entry)
+
+    return jsonify({
+        'success': True,
+        'bank': bank,
+        'emails_found': len(emails),
+        'emails_skipped': len(emails) - len(new_emails),
+        'emails_processed': len(new_emails),
+        'results': results,
+    })
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

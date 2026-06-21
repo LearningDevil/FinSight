@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import AuthSuccess from './pages/AuthSuccess';
 import Dashboard from './pages/Dashboard';
+import StatementUpload from './pages/StatementUpload';
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/auth/success" element={<AuthSuccess />} />
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/statements" element={<PrivateRoute><StatementUpload /></PrivateRoute>} />
         <Route path="/auth/error" element={
           <div className="min-h-screen bg-base grid-bg flex items-center justify-center px-4">
             <p className="text-debit text-sm text-center">
