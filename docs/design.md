@@ -123,3 +123,280 @@ animating everything. Everything else is fast, quiet, and gets out of the way.
   trust-driven finance product.
 - ❌ Generic rounded cards with soft drop shadows — replaced with flat
   ruled surfaces, consistent with the ledger metaphor.
+
+
+
+# FinSight — Design System
+
+**Version:** 2.0 — "Pixel Terminal"
+**Status:** Approved direction (replaced v1.0 "Digital Ledger")
+**Approved:** June 2026
+
+---
+
+## Design Philosophy
+
+FinSight's v2 design language is called **Pixel Terminal** — it sits at the
+intersection of three references:
+
+1. **Pixel art / retro computing** — hard edges, offset shadows, grid overlays,
+   monospace type, blinking cursors. The aesthetic of something precise and
+   deliberate, like code running correctly.
+2. **Modern dark UI** — the dark mode that developers actually live in. VS Code,
+   GitHub, Linear. Familiar, trustworthy, high contrast.
+3. **3D illusion on a 2D surface** — depth without blur. Hard offset box-shadows
+   simulate physical buttons and elevated surfaces. Moving shadows on hover/press
+   create the sensation of pressing a real key.
+
+**What this replaced:** v1.0 "Digital Ledger" (paper backgrounds, serif type,
+ledger ruled lines) was distinctive but passive. v2.0 feels like operating a
+system — active, precise, alive.
+
+---
+
+## 1. Color Palette
+
+### Base System
+| Token | Hex | Use |
+|---|---|---|
+| `--bg-base` | `#0D1117` | Primary background — deepest layer |
+| `--bg-surface` | `#161B22` | Cards, panels, terminal windows |
+| `--bg-hover` | `#21262D` | Hover states, pressed surfaces |
+| `--border` | `#30363D` | Default borders |
+| `--border-active` | `#484F58` | Active/focused borders |
+
+### Text System
+| Token | Hex | Use |
+|---|---|---|
+| `--text-primary` | `#E6EDF3` | Headlines, primary content |
+| `--text-secondary` | `#8B949E` | Subtitles, labels |
+| `--text-muted` | `#484F58` | Disabled, placeholder, fine print |
+
+### Semantic Colors
+| Token | Hex | Use |
+|---|---|---|
+| `--gold` | `#B8860B` | Primary accent — CTAs, active states, logo |
+| `--gold-shadow` | `#7A5A07` | Hard offset shadow on gold elements |
+| `--gold-dim` | `rgba(184,134,11,0.08)` | Hover tints on dark surfaces |
+| `--debit` | `#B7472A` | Expense amounts, withdrawal indicators |
+| `--debit-dim` | `rgba(183,71,42,0.12)` | Debit row hover tints |
+| `--credit` | `#3FB950` | Income amounts, success states |
+| `--credit-dim` | `rgba(63,185,80,0.12)` | Credit row hover tints |
+| `--info` | `#79C0FF` | Commands, links, terminal values |
+
+### Grid Overlay
+Applied via CSS on root container — the visual DNA of every dark surface:
+```css
+background-image:
+  linear-gradient(rgba(184,134,11,0.04) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(184,134,11,0.04) 1px, transparent 1px);
+background-size: 32px 32px;
+```
+
+---
+
+## 2. Typography
+
+Single-font system — `Courier New` monospace everywhere except the hero headline.
+
+| Role | Typeface | Size | Weight | Use |
+|---|---|---|---|---|
+| Hero Display | Georgia, serif | 38–52px | 700 | Landing headline only |
+| UI / Body / Data | Courier New, monospace | 10–32px | 400–700 | Everything else |
+
+**Letter spacing:**
+- Labels / eyebrows / status: `letter-spacing: 0.1–0.2em` + uppercase
+- Hero headline: `letter-spacing: -1px` to `-2px`
+- Stat numbers: `letter-spacing: -1px`
+- Body / terminal: `letter-spacing: 0`
+
+**`font-variant-numeric: tabular-nums`** on all monetary figures — always.
+
+---
+
+## 3. The 3D Illusion System
+
+All perceived depth comes from **hard offset box-shadows with zero blur**.
+
+```css
+/* CORRECT */
+box-shadow: 4px 4px 0 #7A5A07;
+
+/* WRONG — never use blur radius */
+box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+```
+
+### Shadow Scale
+| Element | Default | Hover | Press |
+|---|---|---|---|
+| Primary button | `4px 4px 0 #7A5A07` | `6px 6px 0 #7A5A07` | `2px 2px 0 #7A5A07` |
+| Cards / panels | `4px 4px 0 #21262D` | `6px 6px 0 #21262D` | — |
+| Terminal window | `6px 6px 0 #21262D` | — | — |
+| Inputs | `2px 2px 0 #21262D` | `2px 2px 0 #484F58` | — |
+
+### Button Press Animation
+```css
+.btn-pixel {
+  box-shadow: 4px 4px 0 var(--gold-shadow);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.btn-pixel:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--gold-shadow);
+}
+.btn-pixel:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--gold-shadow);
+}
+```
+
+---
+
+## 4. Component Specs
+
+### Navbar
+- `--bg-base` + `border-bottom: 1px solid --border`
+- Logo: gold `[F]` square with `3px 3px 0 --gold-shadow`, monospace uppercase wordmark
+- Status: pulsing `--credit` dot + "SYSTEM ONLINE" label
+- Nav links: uppercase, `--text-secondary`, `letter-spacing: 0.1em`
+
+### Terminal Panel
+The signature component. Shows real parse output as it streams.
+- Background: `--bg-surface`, border `1px solid --border`, shadow `6px 6px 0 #21262D`
+- Terminal bar: 3 pixel dots (debit/gold/credit), filename label in `--text-secondary`
+- Color coding inside:
+  - `$` prompt → `--credit`
+  - Commands → `--info`
+  - Output text → `--text-secondary`
+  - Values / numbers → `--gold`
+  - Success `✓` → `--credit`
+  - Debit/error amounts → `--debit`
+  - Blinking cursor → `--gold`, `1s step-end infinite`
+
+### Transaction Row
+```
+14 Jun  │  UPI/Swiggy Ltd  │  Food & Dining  │  −₹450.00
+```
+- Date: `--text-muted`, monospace
+- Merchant: `--text-primary`
+- Category: `--text-secondary`, small
+- Amount: right-aligned, `tabular-nums`, `--debit` with `−` or `--credit` with `+`
+- Divider: `1px solid --border`
+- Hover: `background: --gold-dim`
+
+### Stat Cards
+- Number: 32px monospace bold, `--text-primary`, `letter-spacing: -1px`
+- Unit suffix: 12px `--gold`
+- Label: 10px `--text-secondary` uppercase
+- Arrow `→`: `--gold`, top-right corner
+- Hover: `background: --gold-dim`
+- Border between cells: `1px solid --border`
+
+### Primary Button
+- Background: `--gold`, text: `--bg-base`
+- Hard shadow: `4px 4px 0 --gold-shadow`
+- Monospace uppercase, `letter-spacing: 0.1em`
+- Press animation as specified in §3
+
+### Inputs
+- Background: `--bg-surface`
+- Border: `1px solid --border`, focus: `--border-active`
+- Shadow: `2px 2px 0 #21262D`
+- Font: monospace, `--text-primary`
+- Placeholder: `--text-muted`
+- `border-radius: 0` — sharp edges
+
+---
+
+## 5. Motion
+
+Every animation either simulates physics or shows work being done.
+
+| Interaction | Duration | Easing | Effect |
+|---|---|---|---|
+| Button hover | 100ms | `ease-out` | Rise up-left, shadow grows |
+| Button press | 80ms | `ease-in` | Sink down-right, shadow shrinks |
+| Card hover | 150ms | `ease-out` | Background → `--gold-dim` |
+| Page transition | 250ms | `cubic-bezier(0.16,1,0.3,1)` | Fade + slight Y translate |
+| Transaction row appear | 200ms | `cubic-bezier(0.16,1,0.3,1)` | Slide in from left + fade |
+| Terminal line appear | 80ms per line | `linear` | Sequential, like typing |
+| Stat count-up | 600ms | `ease-out` | 0 → final value on mount |
+| Status dot pulse | 2s infinite | `ease-in-out` | Opacity 1 → 0.3 → 1 |
+| Cursor blink | 1s step-end infinite | — | Hard on/off, no fade |
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+  .cursor { opacity: 1; }
+}
+```
+
+---
+
+## 6. Responsive
+
+| Breakpoint | Change |
+|---|---|
+| Desktop ≥1024px | Two-column hero, 3-col stats, 2-col dashboard |
+| Tablet 768–1023px | Single-column hero (terminal below headline), stats stay 3-col |
+| Mobile <768px | Everything single column, terminal hidden on login |
+
+Mobile: reduce all shadows by half (`2px 2px 0` instead of `4px 4px 0`).
+
+---
+
+## 7. Hard Rules (Never Break)
+
+- ❌ No `box-shadow` with blur radius — hard offset only
+- ❌ No gradient backgrounds — flat dark only
+- ❌ No `border-radius` > 2px on structural elements
+- ❌ No white or light backgrounds anywhere
+- ❌ No light mode — dark only by design
+- ❌ No animations for decoration — physics or progress only
+- ❌ No neon/glow effects (`text-shadow`, `filter: blur()`)
+- ❌ No emoji in UI — use `→`, `✓`, `▸`, `·` or Tabler icons
+- ❌ No blue accent (#2563EB etc.) — gold is the accent
+
+---
+
+## 8. CSS Custom Properties
+
+```css
+:root {
+  --bg-base:         #0D1117;
+  --bg-surface:      #161B22;
+  --bg-hover:        #21262D;
+  --border:          #30363D;
+  --border-active:   #484F58;
+  --text-primary:    #E6EDF3;
+  --text-secondary:  #8B949E;
+  --text-muted:      #484F58;
+  --gold:            #B8860B;
+  --gold-shadow:     #7A5A07;
+  --gold-dim:        rgba(184,134,11,0.08);
+  --debit:           #B7472A;
+  --debit-dim:       rgba(183,71,42,0.12);
+  --credit:          #3FB950;
+  --credit-dim:      rgba(63,185,80,0.12);
+  --info:            #79C0FF;
+  --shadow-card:     4px 4px 0 #21262D;
+  --shadow-btn:      4px 4px 0 #7A5A07;
+  --shadow-terminal: 6px 6px 0 #21262D;
+}
+```
+
+---
+
+## 9. Pre-ship Checklist
+
+- [ ] Grid background on all `--bg-base` surfaces
+- [ ] All buttons use hard offset shadow — no blur
+- [ ] Hover rises, press sinks
+- [ ] All amounts: `+`/`−` prefix AND color
+- [ ] All amounts: `tabular-nums`
+- [ ] No `border-radius` > 2px on structural elements
+- [ ] No soft shadows
+- [ ] No light backgrounds
+- [ ] `prefers-reduced-motion` respected
+- [ ] Mobile shadows halved
+- [ ] Focus ring: `outline: 2px solid var(--gold); outline-offset: 2px`

@@ -90,10 +90,10 @@ router.get('/google/callback', async (req, res)=>{
 
         // redirect to frontend with token
         // frontend reads this url and stores it
-        res.redirect(`http://localhost:80/auth/success?token=${jwtToken}`);
+        res.redirect(`http://localhost:5173/auth/success?token=${jwtToken}`);
     }catch(err){
         console.error('OAuth callback error:', err);
-        res.redirect('http://localhost:80/auth/error?message=Authentication failed');
+        res.redirect('http://localhost:5173/auth/error?message=Authentication failed');
     }
 });
 

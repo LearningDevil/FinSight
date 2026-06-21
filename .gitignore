@@ -37,3 +37,5 @@ frontend/dist/
 # ide
 .vscode/settings.json
 .idea/
+
+docs/

@@ -1,0 +1,62 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap');
+
+@theme {
+  --color-base:        #0D1117;
+  --color-surface:     #161B22;
+  --color-hover:       #21262D;
+  --color-line:        #30363D;
+  --color-line-active: #484F58;
+
+  --color-primary:     #E6EDF3;
+  --color-secondary:   #8B949E;
+  --color-muted:       #484F58;
+
+  --color-gold:        #B8860B;
+  --color-gold-shadow: #7A5A07;
+
+  --color-debit:       #B7472A;
+  --color-credit:      #3FB950;
+  --color-info:        #79C0FF;
+
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-base);
+  color: var(--color-primary);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(184,134,11,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184,134,11,0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
